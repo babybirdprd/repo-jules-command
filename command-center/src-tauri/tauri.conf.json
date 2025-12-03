@@ -36,6 +36,17 @@
   "plugins": {
       "store": {
           "all": true
+      },
+      "deep-link": {
+        "mobile": [
+          {
+            "scheme": ["com.app.commandcenter"],
+            "appLink": false
+          }
+        ],
+        "desktop": {
+          "schemes": ["com.app.commandcenter"]
+        }
       }
   }
 }
