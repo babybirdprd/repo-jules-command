@@ -1,0 +1,8 @@
+{
+  "identifier": "mobile",
+  "description": "Core capabilities for mobile",
+  "windows": ["main"],
+  "permissions": [
+    "store:default"
+  ]
+}

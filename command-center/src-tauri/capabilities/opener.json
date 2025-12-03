@@ -1,0 +1,8 @@
+{
+  "identifier": "opener",
+  "description": "Opener capability",
+  "windows": ["main"],
+  "permissions": [
+    "opener:default"
+  ]
+}
