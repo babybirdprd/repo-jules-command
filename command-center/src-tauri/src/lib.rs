@@ -8,9 +8,9 @@ mod ssh_utils;
 mod scaffold_engine;
 mod uplink_engine;
 
-use types::{JobState, JobStatus, AgentMode, PrDetails, AuthState};
+use types::{JobState, JobStatus, AgentMode, AuthState}; // PrDetails removed
 use std::sync::{Arc, Mutex};
-use tauri::{State, Manager};
+use tauri::State; // Manager removed
 use std::collections::HashMap;
 
 struct AppState {

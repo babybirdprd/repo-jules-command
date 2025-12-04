@@ -19,7 +19,10 @@
     ],
     "security": {
       "csp": null,
-      "capabilities": ["mobile", "opener"]
+      "capabilities": [
+        "mobile",
+        "opener"
+      ]
     }
   },
   "bundle": {
@@ -34,19 +37,20 @@
     ]
   },
   "plugins": {
-      "store": {
-          "all": true
-      },
-      "deep-link": {
-        "mobile": [
-          {
-            "scheme": ["com.app.commandcenter"],
-            "appLink": false
-          }
-        ],
-        "desktop": {
-          "schemes": ["com.app.commandcenter"]
+    "deep-link": {
+      "mobile": [
+        {
+          "scheme": [
+            "com.app.commandcenter"
+          ],
+          "appLink": false
         }
+      ],
+      "desktop": {
+        "schemes": [
+          "com.app.commandcenter"
+        ]
       }
+    }
   }
 }

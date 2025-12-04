@@ -1,9 +1,11 @@
-use rand::rngs::OsRng;
-use ed25519_dalek::{SigningKey, VerifyingKey, Signer};
+// use rand::rngs::OsRng;
+// use ed25519_dalek::{SigningKey, VerifyingKey, Signer};
 use ssh2::Session;
 use std::net::TcpStream;
 use std::io::Read;
-use base64;
+// use base64;
+use std::fs::File;
+use std::io::Write;
 
 pub struct SshKeypair {
     pub private_key: String, // PEM format (mocked or real)
@@ -22,7 +24,7 @@ pub fn generate_ephemeral_keypair() -> Result<SshKeypair, String> {
     // No, `userauth_pubkey_memory` is not standard in `ssh2` crate, usually it's `userauth_pubkey_file`.
     // Wait, `ssh2` (rust binding to libssh2) has `userauth_pubkey_memory`?
     // Checking docs... yes, `userauth_publickey_memory`.
-
+    
     // HOWEVER, generating the PEM format in Rust without OpenSSL is annoying.
     // I'll simulate it for the sandbox if I can't easily do it,
     // OR I'll assume I have a helper.
@@ -65,8 +67,32 @@ pub fn execute_ssh_command(
     sess.set_tcp_stream(tcp);
     sess.handshake().map_err(|e| e.to_string())?;
 
-    sess.userauth_pubkey_memory(username, Some(public_key_openssh), private_key_pem, None)
-        .map_err(|e| e.to_string())?;
+    // Android-compatible: Write keys to temporary files
+    let temp_dir = std::env::temp_dir();
+    let id = uuid::Uuid::new_v4();
+    let priv_path = temp_dir.join(format!("id_rsa_{}", id));
+    let pub_path = temp_dir.join(format!("id_rsa_{}.pub", id));
+
+    {
+        let mut priv_file = File::create(&priv_path).map_err(|e| e.to_string())?;
+        priv_file.write_all(private_key_pem.as_bytes()).map_err(|e| e.to_string())?;
+        
+        let mut pub_file = File::create(&pub_path).map_err(|e| e.to_string())?;
+        pub_file.write_all(public_key_openssh.as_bytes()).map_err(|e| e.to_string())?;
+    }
+
+    let auth_res = sess.userauth_pubkey_file(
+        username, 
+        Some(&pub_path), 
+        &priv_path, 
+        None
+    );
+
+    // Cleanup files immediately
+    let _ = std::fs::remove_file(&priv_path);
+    let _ = std::fs::remove_file(&pub_path);
+
+    auth_res.map_err(|e| e.to_string())?;
 
     let mut channel = sess.channel_session().map_err(|e| e.to_string())?;
     channel.exec(command).map_err(|e| e.to_string())?;

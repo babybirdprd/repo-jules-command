@@ -1,8 +1,9 @@
 use std::time::Duration;
 use std::thread;
-use crate::auth::get_github_token;
+// use crate::auth::get_github_token;
 use reqwest::blocking::Client;
 use serde_json::json;
+use base64::Engine;
 
 pub struct GithubClient {
     token: String,
@@ -178,7 +179,7 @@ impl GithubClient {
 
         // 2. Put file
         let url_put = format!("https://api.github.com/repos/{}/{}/contents/{}", repo_owner, repo_name, path);
-        let encoded_content = base64::encode(content);
+        let encoded_content = base64::engine::general_purpose::STANDARD.encode(content);
 
         let mut payload = json!({
             "message": message,

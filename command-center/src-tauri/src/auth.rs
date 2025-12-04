@@ -1,6 +1,6 @@
-use tauri::Wry;
+// use tauri::Wry;
 use tauri_plugin_store::StoreExt;
-use serde_json::json;
+// use serde_json::json;
 
 // Placeholders for secrets
 const GITHUB_CLIENT_ID: &str = "YOUR_GITHUB_CLIENT_ID";

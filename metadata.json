@@ -1,5 +1,0 @@
-{
-  "name": "Mobile Repo Command Center",
-  "description": "A strictly typed DevOps Controller for orchestrating software projects and managing Google's Jules Agent on GitHub repositories.",
-  "requestFramePermissions": []
-}
