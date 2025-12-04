@@ -5,7 +5,6 @@ import {
   Terminal,
   CheckCircle2,
   Loader2,
-  Play,
   Github,
   AppWindow,
   Globe,
@@ -27,6 +26,7 @@ interface JobCardProps {
 const StatusColors: Record<JobStatus, string> = {
   booting: 'text-yellow-500 border-yellow-500/30 bg-yellow-500/10',
   generating: 'text-yellow-500 border-yellow-500/30 bg-yellow-500/10',
+  connecting: 'text-purple-400 border-purple-400/30 bg-purple-400/10',
   uploading_context: 'text-blue-400 border-blue-400/30 bg-blue-400/10',
   planning: 'text-blue-400 border-blue-400/30 bg-blue-400/10',
   waiting_approval: 'text-orange-500 border-orange-500/30 bg-orange-500/10',
@@ -38,6 +38,7 @@ const StatusColors: Record<JobStatus, string> = {
 const StatusLabels: Record<JobStatus, string> = {
   booting: 'Booting Infra',
   generating: 'Scaffolding',
+  connecting: 'Connecting SSH',
   uploading_context: 'Syncing Context',
   planning: 'Jules Planning',
   waiting_approval: 'Needs Approval',
@@ -47,7 +48,7 @@ const StatusLabels: Record<JobStatus, string> = {
 };
 
 const JobCard: React.FC<JobCardProps> = ({ job }) => {
-  const { approveJob, mergeJob } = useJobs();
+  const { approvePlan, mergePR } = useJobs();
   const logRef = useRef<HTMLDivElement>(null);
 
   // Auto scroll logs
@@ -62,11 +63,11 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
     : Box;
 
   const isTerminal = job.status === 'merged';
-  const colorClass = StatusColors[job.status];
+  const colorClass = StatusColors[job.status] || StatusColors['planning'];
 
   // Progress Logic (Visual only)
   const getProgress = () => {
-    const stages: JobStatus[] = ['booting', 'generating', 'uploading_context', 'planning', 'waiting_approval', 'working', 'pr_ready', 'merged'];
+    const stages: JobStatus[] = ['booting', 'generating', 'connecting', 'uploading_context', 'planning', 'waiting_approval', 'working', 'pr_ready', 'merged'];
     const index = stages.indexOf(job.status);
     return Math.max(5, ((index + 1) / stages.length) * 100);
   };
@@ -83,17 +84,17 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
           <div>
             <h3 className="font-bold text-slate-100">{job.repoName}</h3>
             <div className={`text-xs font-mono uppercase tracking-wider flex items-center gap-1.5 ${job.status === 'merged' ? 'text-slate-500' : colorClass.split(' ')[0]}`}>
-              {job.status === 'booting' || job.status === 'working' || job.status === 'planning' ? (
+              {job.status === 'booting' || job.status === 'working' || job.status === 'planning' || job.status === 'connecting' ? (
                  <Loader2 size={10} className="animate-spin" />
               ) : (
                  <div className="w-2 h-2 rounded-full bg-current" />
               )}
-              {StatusLabels[job.status]}
+              {StatusLabels[job.status] || job.status}
             </div>
           </div>
         </div>
         <div className="text-xs text-slate-500 font-mono">
-           {job.type === 'scaffold' ? 'NEW' : 'LINK'}
+           {job.type === 'scaffold' ? 'NEW' : job.type === 'remote_manual' ? 'SSH' : 'LINK'}
         </div>
       </div>
 
@@ -132,7 +133,7 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
             <p className="text-xs text-orange-300/80 mb-3">Jules requires your confirmation to execute changes.</p>
             <div className="flex gap-2">
               <button
-                onClick={() => approveJob(job.id)}
+                onClick={() => approvePlan(job.id)}
                 className="flex-1 bg-orange-600 hover:bg-orange-500 text-white py-2 rounded-md text-sm font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 <CheckCircle2 size={14} /> Approve Plan
@@ -147,7 +148,7 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
             <h4 className="text-green-400 font-bold text-sm mb-1">Pull Request #{job.prDetails.number}</h4>
             <p className="text-xs text-green-300/80 mb-3">{job.prDetails.title} • {job.prDetails.filesChanged} files changed</p>
             <button
-                onClick={() => mergeJob(job.id)}
+                onClick={() => mergePR(job.id)}
                 className="w-full bg-green-600 hover:bg-green-500 text-white py-2 rounded-md text-sm font-bold transition-colors flex items-center justify-center gap-2"
               >
                 <GitPullRequest size={16} /> MERGE

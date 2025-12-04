@@ -1,14 +1,15 @@
 import React from 'react';
 import { useJobs } from '../../context/JobContext';
 import JobCard from './JobCard';
-import { Plus, Command } from 'lucide-react';
+import { Plus, Command, Terminal } from 'lucide-react';
 
 interface DashboardProps {
   onNew: () => void;
   onUplink: () => void;
+  onRemote: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ onNew, onUplink }) => {
+const Dashboard: React.FC<DashboardProps> = ({ onNew, onUplink, onRemote }) => {
   const { jobs } = useJobs();
 
   // Sort: Active first, then by date
@@ -50,6 +51,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onNew, onUplink }) => {
       {/* Floating Action Button */}
       <div className="fixed bottom-24 right-4 z-20 flex flex-col gap-3 items-end pointer-events-none">
         {/* We use pointer-events-auto on buttons to allow interaction */}
+
+        <button
+          onClick={onRemote}
+          className="pointer-events-auto shadow-xl bg-slate-800 border border-slate-700 text-slate-300 px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2 transform hover:-translate-y-1 transition-transform"
+        >
+          <span className="bg-slate-700 w-6 h-6 rounded-full flex items-center justify-center text-[10px]"><Terminal size={12}/></span>
+          Remote / AI
+        </button>
+
         <button
           onClick={onUplink}
           className="pointer-events-auto shadow-xl bg-slate-800 border border-slate-700 text-slate-300 px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2 transform hover:-translate-y-1 transition-transform"

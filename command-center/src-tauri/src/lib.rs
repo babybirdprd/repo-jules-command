@@ -7,6 +7,7 @@ mod jules;
 mod ssh_utils;
 mod scaffold_engine;
 mod uplink_engine;
+mod remote_engine;
 
 use types::{JobState, JobStatus, AgentMode, AuthState}; // PrDetails removed
 use std::sync::{Arc, Mutex};
@@ -111,6 +112,47 @@ async fn start_uplink_job(
 }
 
 #[tauri::command]
+async fn start_remote_job(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    repo_url: String,
+    host: String,
+    port: u16,
+    username: String,
+    private_key: String,
+    context: String,
+    mode: AgentMode
+) -> Result<String, String> {
+    let job_id = uuid::Uuid::new_v4().to_string();
+    let google_token = auth::get_google_token(&app).ok_or("Google not authenticated")?;
+
+    {
+        let mut jobs = state.jobs.lock().unwrap();
+        jobs.insert(job_id.clone(), JobState {
+            id: job_id.clone(),
+            github_repo: repo_url.clone(),
+            jules_session_id: None,
+            status: JobStatus::Connecting,
+            last_poll: None,
+        });
+    }
+
+    let job_id_clone = job_id.clone();
+    let app_handle = app.clone();
+
+    tauri::async_runtime::spawn_blocking(move || {
+        let res = remote_engine::run_remote_job(
+            job_id_clone.clone(), repo_url, host, port, username, private_key, context, mode, google_token, app_handle
+        );
+        if let Err(e) = res {
+            println!("Job {} failed: {}", job_id_clone, e);
+        }
+    });
+
+    Ok(job_id)
+}
+
+#[tauri::command]
 async fn approve_agent_plan(_job_id: String) -> Result<(), String> {
     // Logic to resume session
     // In a real implementation, this would look up the session ID from the job store and call Jules API
@@ -146,6 +188,7 @@ pub fn run() {
             initiate_google_login,
             start_scaffold_job,
             start_uplink_job,
+            start_remote_job,
             approve_agent_plan,
             refine_agent_plan,
             merge_pull_request

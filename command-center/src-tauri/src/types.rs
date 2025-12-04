@@ -12,6 +12,7 @@ pub enum JobStatus {
     Working,           // [Universal] Jules Coding
     PrReady,          // [Universal] Pull Request Created
     Merged,           // [Universal] Job Done
+    Connecting,       // [Remote] Connecting via SSH
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

@@ -3,8 +3,8 @@ use tauri_plugin_store::StoreExt;
 // use serde_json::json;
 
 // Placeholders for secrets
-const GITHUB_CLIENT_ID: &str = "YOUR_GITHUB_CLIENT_ID";
-const GOOGLE_CLIENT_ID: &str = "YOUR_GOOGLE_CLIENT_ID";
+// const GITHUB_CLIENT_ID: &str = "YOUR_GITHUB_CLIENT_ID";
+// const GOOGLE_CLIENT_ID: &str = "YOUR_GOOGLE_CLIENT_ID";
 
 pub fn get_github_token<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Option<String> {
     // In a real app, use the store or keyring.
