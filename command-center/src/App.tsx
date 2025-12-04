@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { JobProvider } from './context/JobContext';
 import Dashboard from './components/Dashboard/Dashboard';
 import GeneratorGrid from './components/Generators/GeneratorGrid';
 import ScaffoldWizard from './components/Wizards/ScaffoldWizard';
 import UplinkWizard from './components/Wizards/UplinkWizard';
+import RemoteWizard from './components/Wizards/RemoteWizard';
 import { GeneratorRecipe } from './types';
 import { LayoutGrid, Command, Settings as SettingsIcon } from 'lucide-react';
 
-type View = 'dashboard' | 'generators' | 'settings' | 'scaffold_wizard' | 'uplink_wizard';
+type View = 'dashboard' | 'generators' | 'settings' | 'scaffold_wizard' | 'uplink_wizard' | 'remote_wizard';
 
 function AppContent() {
   const [view, setView] = useState<View>('dashboard');
@@ -32,6 +33,7 @@ function AppContent() {
           <Dashboard
             onNew={() => setView('generators')}
             onUplink={() => setView('uplink_wizard')}
+            onRemote={() => setView('remote_wizard')}
           />
         )}
 
@@ -54,6 +56,13 @@ function AppContent() {
           />
         )}
 
+        {view === 'remote_wizard' && (
+            <RemoteWizard
+                onBack={() => setView('dashboard')}
+                onComplete={finishWizard}
+            />
+        )}
+
         {view === 'settings' && (
             <div className="p-8 text-center opacity-50">
                 <SettingsIcon size={48} className="mx-auto mb-4 text-slate-600" />
@@ -65,7 +74,7 @@ function AppContent() {
 
       {/* Bottom Navigation */}
       {/* Hide nav on wizard screens to focus user */}
-      {!['scaffold_wizard', 'uplink_wizard'].includes(view) && (
+      {!['scaffold_wizard', 'uplink_wizard', 'remote_wizard'].includes(view) && (
         <nav className="fixed bottom-0 w-full bg-slate-900/90 backdrop-blur-lg border-t border-slate-800 pb-safe z-30">
           <div className="flex justify-around items-center h-16">
             <button

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { Job, AgentMode } from '../types';
 import { TauriService } from '../services/tauriService';
 
@@ -6,6 +6,7 @@ interface JobContextType {
   jobs: Job[];
   addScaffoldJob: (name: string, recipeId: string, context: string, mode: AgentMode, icon: string) => Promise<void>;
   addUplinkJob: (repoName: string, context: string, mode: AgentMode) => Promise<void>;
+  addRemoteJob: (repoName: string, host: string, port: number, username: string, privateKey: string, context: string, mode: AgentMode) => Promise<void>;
   approvePlan: (jobId: string) => Promise<void>;
   refinePlan: (jobId: string, feedback: string) => Promise<void>;
   mergePR: (jobId: string) => Promise<void>;
@@ -69,6 +70,26 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const addRemoteJob = async (repoName: string, host: string, port: number, username: string, privateKey: string, context: string, mode: AgentMode) => {
+    try {
+        const jobId = await TauriService.startRemoteJob(repoName, host, port, username, privateKey, context, mode);
+        const newJob: Job = {
+            id: jobId,
+            repoName,
+            type: 'remote_manual',
+            mode,
+            status: 'connecting',
+            createdAt: Date.now(),
+            agentContext: context,
+            logs: [`>> Connecting to ${host}...`],
+            generatorIcon: 'Server'
+        };
+        setJobs(prev => [newJob, ...prev]);
+    } catch (e) {
+        console.error("Failed to start remote job", e);
+    }
+  };
+
   const approvePlan = async (jobId: string) => {
     await TauriService.approvePlan(jobId);
     setJobs(prev => prev.map(job => job.id === jobId ? { ...job, status: 'working', logs: [...job.logs, '>> Plan approved.'] } : job));
@@ -85,7 +106,7 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   return (
-    <JobContext.Provider value={{ jobs, addScaffoldJob, addUplinkJob, approvePlan, refinePlan, mergePR }}>
+    <JobContext.Provider value={{ jobs, addScaffoldJob, addUplinkJob, addRemoteJob, approvePlan, refinePlan, mergePR }}>
       {children}
     </JobContext.Provider>
   );

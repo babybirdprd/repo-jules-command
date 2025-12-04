@@ -99,21 +99,7 @@ impl JulesClient {
         Ok((JobStatus::Planning, None, None))
     }
 
-    pub fn resume_session(&self, _session_id: &str) -> Result<(), String> {
-        // Call resume endpoint
-         if self.token.starts_with("mock") {
-             return Ok(());
-         }
-         // Implementation
-         Ok(())
-    }
-
-     pub fn send_activity(&self, _session_id: &str, _feedback: &str) -> Result<(), String> {
-        // Call resume endpoint
-         if self.token.starts_with("mock") {
-             return Ok(());
-         }
-         // Implementation
-         Ok(())
-    }
+    // Keep for future use or remove if strict
+    // pub fn resume_session(&self, _session_id: &str) -> Result<(), String> { ... }
+    // pub fn send_activity(&self, _session_id: &str, _feedback: &str) -> Result<(), String> { ... }
 }

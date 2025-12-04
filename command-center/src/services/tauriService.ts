@@ -1,6 +1,6 @@
 // services/tauriService.ts
 import { invoke } from '@tauri-apps/api/core';
-import { Job, AgentMode } from '../types';
+import { AgentMode } from '../types';
 
 export const TauriService = {
   checkAuthStatus: async () => {
@@ -17,6 +17,10 @@ export const TauriService = {
 
   startUplinkJob: async (repoUrl: string, context: string, mode: AgentMode): Promise<string> => {
     return await invoke('start_uplink_job', { repoUrl, context, mode });
+  },
+
+  startRemoteJob: async (repoUrl: string, host: string, port: number, username: string, privateKey: string, context: string, mode: AgentMode): Promise<string> => {
+    return await invoke('start_remote_job', { repoUrl, host, port, username, privateKey, context, mode });
   },
 
   approvePlan: async (jobId: string) => {

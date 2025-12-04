@@ -1,7 +1,8 @@
-export type JobType = 'scaffold' | 'existing_uplink';
+export type JobType = 'scaffold' | 'existing_uplink' | 'remote_manual';
 export type JobStatus =
   | 'booting'           // [Scaffold only] Provisioning Codespace
   | 'generating'        // [Scaffold only] Running Bash Script
+  | 'connecting'        // [Remote only] SSH Connection
   | 'uploading_context' // [Universal] Committing AGENTS.md
   | 'planning'          // [Universal] Jules Thinking
   | 'waiting_approval'  // [Universal] Interactive Mode Pause

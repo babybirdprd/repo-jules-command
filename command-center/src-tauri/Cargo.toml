@@ -28,3 +28,4 @@ ed25519-dalek = { version = "2", features = ["rand_core"] }
 base64 = "0.21"
 chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1.10.0", features = ["v4", "serde"] }
+ssh-key = { version = "0.6.7", features = ["ed25519"] }
