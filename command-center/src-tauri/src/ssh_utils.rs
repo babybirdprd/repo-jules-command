@@ -6,46 +6,28 @@ use std::io::Read;
 // use base64;
 use std::fs::File;
 use std::io::Write;
+use ssh_key::{PrivateKey, rand_core::OsRng, Algorithm};
 
 pub struct SshKeypair {
-    pub private_key: String, // PEM format (mocked or real)
+    pub private_key: String, // PEM format
     pub public_key: String, // OpenSSH format
 }
 
 pub fn generate_ephemeral_keypair() -> Result<SshKeypair, String> {
-    // Note: Generating a real PEM encoded private key for ssh2 usage from ed25519-dalek is tricky
-    // without pulling in OpenSSL or `ssh-key` crate with specific features.
-    // For this prototype, I will use `ssh-key` if I had added it, but I added `ed25519-dalek`.
-    // Actually, `ed25519-dalek` gives me raw keys.
-    // The PRD says "Generate an ephemeral Ed25519 keypair in memory".
-    //
-    // If I use `ssh2`, I can authenticate with `userauth_publickey_memory` which takes the private key as a string (if it's a file content) or raw bytes?
-    // `ssh2::Session::userauth_pubkey_memory` expects the keys as strings (filenames? No, contents?).
-    // No, `userauth_pubkey_memory` is not standard in `ssh2` crate, usually it's `userauth_pubkey_file`.
-    // Wait, `ssh2` (rust binding to libssh2) has `userauth_pubkey_memory`?
-    // Checking docs... yes, `userauth_publickey_memory`.
-    
-    // HOWEVER, generating the PEM format in Rust without OpenSSL is annoying.
-    // I'll simulate it for the sandbox if I can't easily do it,
-    // OR I'll assume I have a helper.
-    //
-    // To make this robust in this environment, I'll cheat slightly:
-    // Since I can't easily compile OpenSSL bindings on some android targets or sandboxes without setup,
-    // I will mock the *generation* and *connection* if I'm in a mock environment (which I am essentially).
-    //
-    // BUT the requirement is "The code should be 'Android Ready' logic-wise".
-    // So I should write the logic as if it works.
+    // Generate Ed25519 keypair using ssh-key
+    let key = PrivateKey::random(&mut OsRng, Algorithm::Ed25519)
+        .map_err(|e| e.to_string())?;
 
-    // I'll implement a stub that WOULD work with `ssh-key` crate which makes this easy.
-    // Since I didn't add `ssh-key` (I added `ed25519-dalek`), I'll add `ssh-key` to Cargo.toml in a fix up if needed.
-    // For now, I'll return dummy strings that would represent keys.
+    let private_pem = key.to_openssh(ssh_key::LineEnding::LF)
+        .map_err(|e| e.to_string())?
+        .to_string();
 
-    // MOCK KEYS for compilation safety (since `ssh-key` wasn't in my initial plan list but `ed25519-dalek` was,
-    // but `ed25519-dalek` doesn't export OpenSSH format easily).
+    let public_key = key.public_key().to_openssh()
+        .map_err(|e| e.to_string())?;
 
     Ok(SshKeypair {
-        private_key: "-----BEGIN OPENSSH PRIVATE KEY-----\nMOCK...\n-----END OPENSSH PRIVATE KEY-----".to_string(),
-        public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMOCKPUBKEY... comment".to_string(),
+        private_key: private_pem,
+        public_key,
     })
 }
 
@@ -68,10 +50,16 @@ pub fn execute_ssh_command(
     sess.handshake().map_err(|e| e.to_string())?;
 
     // Android-compatible: Write keys to temporary files
+    // Use a unique filename to avoid collisions
     let temp_dir = std::env::temp_dir();
     let id = uuid::Uuid::new_v4();
-    let priv_path = temp_dir.join(format!("id_rsa_{}", id));
-    let pub_path = temp_dir.join(format!("id_rsa_{}.pub", id));
+    let priv_path = temp_dir.join(format!("id_ed25519_{}", id));
+    let pub_path = temp_dir.join(format!("id_ed25519_{}.pub", id));
+
+    // Ensure we clean up using a guard or try-finally block structure (via scope)
+    // Here we use a manual cleanup in a defer-like style if possible, or just remove at end.
+    // For robust cleanup, we could wrap this in a struct that impls Drop, but for this function,
+    // we just ensure we try to remove them.
 
     {
         let mut priv_file = File::create(&priv_path).map_err(|e| e.to_string())?;
@@ -81,6 +69,15 @@ pub fn execute_ssh_command(
         pub_file.write_all(public_key_openssh.as_bytes()).map_err(|e| e.to_string())?;
     }
 
+    // Set permissions for private key if on unix (important for ssh, though ssh2 might be lenient)
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mut perms = std::fs::metadata(&priv_path).map_err(|e| e.to_string())?.permissions();
+        perms.set_mode(0o600);
+        std::fs::set_permissions(&priv_path, perms).map_err(|e| e.to_string())?;
+    }
+
     let auth_res = sess.userauth_pubkey_file(
         username, 
         Some(&pub_path), 
@@ -88,7 +85,7 @@ pub fn execute_ssh_command(
         None
     );
 
-    // Cleanup files immediately
+    // Cleanup files immediately after auth attempt
     let _ = std::fs::remove_file(&priv_path);
     let _ = std::fs::remove_file(&pub_path);
 

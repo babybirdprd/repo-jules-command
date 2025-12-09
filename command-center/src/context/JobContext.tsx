@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { Job, AgentMode } from '../types';
 import { TauriService } from '../services/tauriService';
 
@@ -85,7 +85,7 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   return (
-    <JobContext.Provider value={{ jobs, addScaffoldJob, addUplinkJob, approvePlan, refinePlan, mergePR }}>
+    <JobContext.Provider value={{ jobs, addScaffoldJob, addUplinkJob, approvePlan, refinePlan, mergePR: mergePR }}>
       {children}
     </JobContext.Provider>
   );
