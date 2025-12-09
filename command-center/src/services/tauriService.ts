@@ -1,6 +1,6 @@
 // services/tauriService.ts
 import { invoke } from '@tauri-apps/api/core';
-import { Job, AgentMode } from '../types';
+import { AgentMode } from '../types';
 
 export const TauriService = {
   checkAuthStatus: async () => {

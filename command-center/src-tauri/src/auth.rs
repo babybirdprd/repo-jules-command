@@ -3,7 +3,11 @@ use tauri_plugin_store::StoreExt;
 // use serde_json::json;
 
 // Placeholders for secrets
+// Use env vars or placeholders. For this template, we keep them as placeholders but suppress warnings.
+// In a real app, these should be loaded from a secure config or env vars during build.
+#[allow(dead_code)]
 const GITHUB_CLIENT_ID: &str = "YOUR_GITHUB_CLIENT_ID";
+#[allow(dead_code)]
 const GOOGLE_CLIENT_ID: &str = "YOUR_GOOGLE_CLIENT_ID";
 
 pub fn get_github_token<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Option<String> {

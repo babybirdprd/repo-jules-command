@@ -5,7 +5,6 @@ import {
   Terminal,
   CheckCircle2,
   Loader2,
-  Play,
   Github,
   AppWindow,
   Globe,
@@ -47,7 +46,7 @@ const StatusLabels: Record<JobStatus, string> = {
 };
 
 const JobCard: React.FC<JobCardProps> = ({ job }) => {
-  const { approveJob, mergeJob } = useJobs();
+  const { approvePlan, mergePR } = useJobs();
   const logRef = useRef<HTMLDivElement>(null);
 
   // Auto scroll logs
@@ -132,7 +131,7 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
             <p className="text-xs text-orange-300/80 mb-3">Jules requires your confirmation to execute changes.</p>
             <div className="flex gap-2">
               <button
-                onClick={() => approveJob(job.id)}
+                onClick={() => approvePlan(job.id)}
                 className="flex-1 bg-orange-600 hover:bg-orange-500 text-white py-2 rounded-md text-sm font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 <CheckCircle2 size={14} /> Approve Plan
@@ -147,7 +146,7 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
             <h4 className="text-green-400 font-bold text-sm mb-1">Pull Request #{job.prDetails.number}</h4>
             <p className="text-xs text-green-300/80 mb-3">{job.prDetails.title} • {job.prDetails.filesChanged} files changed</p>
             <button
-                onClick={() => mergeJob(job.id)}
+                onClick={() => mergePR(job.id)}
                 className="w-full bg-green-600 hover:bg-green-500 text-white py-2 rounded-md text-sm font-bold transition-colors flex items-center justify-center gap-2"
               >
                 <GitPullRequest size={16} /> MERGE

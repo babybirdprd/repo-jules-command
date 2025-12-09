@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { JobProvider } from './context/JobContext';
 import Dashboard from './components/Dashboard/Dashboard';
 import GeneratorGrid from './components/Generators/GeneratorGrid';
